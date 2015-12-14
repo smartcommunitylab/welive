@@ -18,16 +18,20 @@ package it.smartcommunitylab.webtemplate.controllers;
 
 import it.smartcommunitylab.logging.LoggingClient;
 import it.smartcommunitylab.logging.model.LogMsg;
+import it.smartcommunitylab.webtemplate.beans.Profile;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import eu.trentorise.smartcampus.aac.AACException;
@@ -42,8 +46,8 @@ public class ExampleController {
 	 * INSERT A VALID CLIENT_ID AND CLIENT_SECRET CODES FROM SMARTCOMMUNITY
 	 * PERMISSION PROVIDER
 	 */
-	private static final String CLIENT_ID = "";
-	private static final String CLIENT_SECRET = "";
+	private static final String CLIENT_ID = "18f6db6f-398c-4ee3-b341-662c4b58786d";
+	private static final String CLIENT_SECRET = "4796ea88-0506-4727-a7ad-f8766d5231fb";
 
 	private static final String PROFILE_SERVICE_ENDPOINT = "https://dev.smartcommunitylab.it/aac";
 	private static final String AAC_SERVICE_ENDPOINT = "https://dev.smartcommunitylab.it/aac";
@@ -103,6 +107,42 @@ public class ExampleController {
 			loggingClient.log(LOGGING_APPID, createLogMessage(String.format(
 					"User %s request its profile", model.get("surname"))));
 			return new ModelAndView("secure", model);
+		}
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/profile", produces = {
+			"application/json", "application/xml" })
+	public @ResponseBody
+	Profile rest(HttpServletRequest request, HttpServletResponse res)
+			throws SecurityException, ProfileServiceException, IOException {
+		boolean notAuthorized = false;
+		Profile p = new Profile();
+		// search token in request headers
+		accessToken = analyzeReqHeader(request);
+		try {
+			if (accessToken != null && accessToken.compareTo("") != 0
+					&& aacService.isTokenApplicable(accessToken, SCOPE)) {
+				BasicProfile bp = profileService.getBasicProfile(accessToken);
+				p.setName(bp.getName());
+				p.setSurname(bp.getSurname());
+			} else {
+				notAuthorized = true;
+			}
+		} catch (AACException e) {
+			notAuthorized = true;
+		}
+
+		if (notAuthorized) {
+			loggingClient
+					.log(LOGGING_APPID,
+							createLogMessage("Access unauthorized to protected resource"));
+			res.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+					"Access not authorized");
+			return null;
+		} else {
+			loggingClient.log(LOGGING_APPID, createLogMessage(String.format(
+					"User %s request its profile", p.getSurname())));
+			return p;
 		}
 	}
 
