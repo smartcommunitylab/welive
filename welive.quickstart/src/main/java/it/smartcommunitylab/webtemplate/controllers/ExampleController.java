@@ -46,8 +46,8 @@ public class ExampleController {
 	 * INSERT A VALID CLIENT_ID AND CLIENT_SECRET CODES FROM SMARTCOMMUNITY
 	 * PERMISSION PROVIDER
 	 */
-	private static final String CLIENT_ID = "18f6db6f-398c-4ee3-b341-662c4b58786d";
-	private static final String CLIENT_SECRET = "4796ea88-0506-4727-a7ad-f8766d5231fb";
+	private static final String CLIENT_ID = "";
+	private static final String CLIENT_SECRET = "";
 
 	private static final String PROFILE_SERVICE_ENDPOINT = "https://dev.smartcommunitylab.it/aac";
 	private static final String AAC_SERVICE_ENDPOINT = "https://dev.smartcommunitylab.it/aac";
@@ -63,7 +63,6 @@ public class ExampleController {
 			CLIENT_ID, CLIENT_SECRET);
 
 	private LoggingClient loggingClient = new LoggingClient(LOGGING_ENDPOINT);
-	private String accessToken = "";
 
 	private static final String LOGGING_APPID = "scotest-quickstart";
 
@@ -79,6 +78,10 @@ public class ExampleController {
 		Map<String, Object> model = new HashMap<String, Object>();
 		boolean notAuthorized = false;
 		// search token in request headers
+		String accessToken = null;
+
+		// search in session otherwise in header of request
+		accessToken = (String) request.getSession().getAttribute("accessToken");
 		if (accessToken == null) {
 			accessToken = analyzeReqHeader(request);
 		}
@@ -118,7 +121,7 @@ public class ExampleController {
 		boolean notAuthorized = false;
 		Profile p = new Profile();
 		// search token in request headers
-		accessToken = analyzeReqHeader(request);
+		String accessToken = analyzeReqHeader(request);
 		try {
 			if (accessToken != null && accessToken.compareTo("") != 0
 					&& aacService.isTokenApplicable(accessToken, SCOPE)) {
@@ -151,15 +154,14 @@ public class ExampleController {
 			@RequestParam(required = false) String code)
 			throws SecurityException, AACException {
 
-		accessToken = aacService.exchngeCodeForToken(code, REDIRECT_URI)
+		String accessToken = aacService.exchngeCodeForToken(code, REDIRECT_URI)
 				.getAccess_token();
-
+		request.getSession().setAttribute("accessToken", accessToken);
 		return new ModelAndView("redirect:/secure");
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/login")
 	public ModelAndView secure(HttpServletRequest request) {
-		accessToken = null;
 
 		return new ModelAndView("redirect:"
 				+ aacService.generateAuthorizationURIForCodeFlow(REDIRECT_URI,
