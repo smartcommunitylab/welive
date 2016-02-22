@@ -24,9 +24,11 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -42,30 +44,37 @@ import eu.trentorise.smartcampus.profileservice.model.BasicProfile;
 
 @Controller
 public class ExampleController {
-	/**
-	 * INSERT A VALID CLIENT_ID AND CLIENT_SECRET CODES FROM SMARTCOMMUNITY
-	 * PERMISSION PROVIDER
-	 */
-	private static final String CLIENT_ID = "";
-	private static final String CLIENT_SECRET = "";
 
-	private static final String PROFILE_SERVICE_ENDPOINT = "https://dev.smartcommunitylab.it/aac";
-	private static final String AAC_SERVICE_ENDPOINT = "https://dev.smartcommunitylab.it/aac";
-	private static final String LOGGING_ENDPOINT = "https://dev.welive.eu/welive.logging";
-	private static final String REDIRECT_URI = "http://localhost:8080/welive.quickstart/check";
+	@Value("${client.id}")
+	private String CLIENT_ID = null;
+	@Value("${client.secret}")
+	private String CLIENT_SECRET = null;
+
+	@Value("${profile.service.endpoint}")
+	private String PROFILE_SERVICE_ENDPOINT = null;
+	@Value("${aac.endpoint}")
+	private String AAC_SERVICE_ENDPOINT = null;
+	@Value("${logging.endpoint}")
+	private String LOGGING_ENDPOINT = null;
+	@Value("${redirect.uri}")
+	private String REDIRECT_URI = null;
 
 	private static final String SCOPE = "profile.basicprofile.me";
 
-	private BasicProfileService profileService = new BasicProfileService(
-			PROFILE_SERVICE_ENDPOINT);
-
-	private AACService aacService = new AACService(AAC_SERVICE_ENDPOINT,
-			CLIENT_ID, CLIENT_SECRET);
-
-	private LoggingClient loggingClient = new LoggingClient(LOGGING_ENDPOINT);
+	private BasicProfileService profileService = null;
+	private AACService aacService = null;
+	private LoggingClient loggingClient = null;
 
 	private static final String LOGGING_APPID = "scotest-quickstart";
 
+	
+	@PostConstruct
+	private void init() {
+		profileService = new BasicProfileService(PROFILE_SERVICE_ENDPOINT);
+		aacService = new AACService(AAC_SERVICE_ENDPOINT, CLIENT_ID, CLIENT_SECRET);
+		loggingClient = new LoggingClient(LOGGING_ENDPOINT);
+	}
+	
 	@RequestMapping(method = RequestMethod.GET, value = "/")
 	public String index(HttpServletRequest request) {
 

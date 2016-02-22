@@ -14,6 +14,8 @@
     http://www.springframework.org/schema/security 
     http://www.springframework.org/schema/security/spring-security-3.1.xsd">
 
+   <context:property-placeholder location="classpath:application.properties"/>  
+    
 	<!-- Configures support for @Controllers -->
 	<mvc:annotation-driven/>
 
