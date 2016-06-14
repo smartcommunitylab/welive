@@ -30,7 +30,19 @@ public class LoggingClient {
 
 	private final String endpoint;
 
-	public LoggingClient(final String endpoint) {
+	private String token;
+	
+	public static LoggingClient logClient(String endpoint, String token) {
+		if (token == null) throw new IllegalArgumentException("Incorrect token.");
+		if (endpoint == null) throw new IllegalArgumentException("Incorrect endpoint. ");
+		
+		LoggingClient client = new LoggingClient(endpoint);
+		client.token = token.toLowerCase();
+		if (!client.token.startsWith("bearer ") || ! client.token.startsWith("basic ")) throw new IllegalArgumentException("Incorrect token: bearer or basic token expected");
+		return client;
+	}
+	
+	private LoggingClient(final String endpoint) {
 		this.endpoint = endpoint;
 	}
 

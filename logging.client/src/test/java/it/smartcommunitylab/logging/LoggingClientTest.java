@@ -25,8 +25,7 @@ public class LoggingClientTest {
 	@Rule
 	public WireMockRule wireMockRule = new WireMockRule(8888);
 
-	private LoggingClient loggingClient = new LoggingClient(
-			"http://127.0.0.1:8888");
+	private LoggingClient loggingClient = LoggingClient.logClient("http://127.0.0.1:8888","");
 	private static final String APPID = "testApp";
 
 	@Test
