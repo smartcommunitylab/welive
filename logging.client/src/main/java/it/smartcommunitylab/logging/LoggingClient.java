@@ -37,8 +37,8 @@ public class LoggingClient {
 		if (endpoint == null) throw new IllegalArgumentException("Incorrect endpoint. ");
 		
 		LoggingClient client = new LoggingClient(endpoint);
-		client.token = token.toLowerCase();
-		if (!client.token.startsWith("bearer ") || ! client.token.startsWith("basic ")) throw new IllegalArgumentException("Incorrect token: bearer or basic token expected");
+		client.token = token;
+		if (!client.token.toLowerCase().startsWith("bearer ") && ! client.token.toLowerCase().startsWith("basic ")) throw new IllegalArgumentException("Incorrect token: bearer or basic token expected");
 		return client;
 	}
 	
@@ -61,8 +61,10 @@ public class LoggingClient {
 	 */
 	public boolean log(String appId, LogMsg payload) {
 		if (appId != null) {
+			Entity<LogMsg> body = Entity.json(payload);
 			return createEndpoint().path("log").path(appId).request()
-					.post(Entity.json(payload)).getStatus() == Status.OK
+					.header("Authorization", token)
+					.post(body).getStatus() == Status.OK
 					.getStatusCode();
 		} else {
 			throw new IllegalArgumentException("appId cannot be null");
@@ -100,7 +102,9 @@ public class LoggingClient {
 			WebTarget endpoint = createEndpoint().path("log").path(appId);
 			endpoint = pushRequestParams(endpoint, from, to, type, pattern,
 					msgPattern, limit, offset);
-			return endpoint.request().get(Pagination.class);
+			return endpoint.request()
+					.header("Authorization", token)
+					.get(Pagination.class);
 		} else {
 			throw new IllegalArgumentException("appId cannot be null");
 		}
@@ -138,7 +142,9 @@ public class LoggingClient {
 			WebTarget endpoint = createEndpoint().path("log").path(appId);
 			endpoint = pushRequestParams(endpoint, from, to, type, pattern,
 					msgPattern, limit, offset);
-			return endpoint.request().get(Counter.class);
+			return endpoint.request()
+					.header("Authorization", token)
+					.get(Counter.class);
 		} else {
 			throw new IllegalArgumentException("appId cannot be null");
 		}
